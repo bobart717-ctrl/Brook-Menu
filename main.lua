@@ -1,53 +1,96 @@
--- Простой интерфейс для Brookhaven
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local human = character:WaitForChild("Humanoid")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Создаем GUI
-local screenGui = Instance.new("ScreenGui", player.PlayerGui)
-screenGui.Name = "BrookhavenMenu"
+local Window = Rayfield:CreateWindow({
+   Name = "Brookhaven VIP | Bobart717",
+   LoadingTitle = "Загрузка чит-меню...",
+   LoadingSubtitle = "by bobart717-ctrl",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "BrookhavenConfig", 
+      FileName = "MainGui"
+   }
+})
 
-local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Size = UDim2.new(0, 150, 0, 200)
-mainFrame.Position = UDim2.new(0, 10, 0.4, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.Active = true
-mainFrame.Draggable = true -- Можно двигать по экрану
+-- ВКЛАДКА: Игрок
+local PlayerTab = Window:CreateTab("Игрок", 4483362458) -- Иконка человечка
 
-local title = Instance.new("TextLabel", mainFrame)
-title.Text = "BROOK MENU"
-title.Size = UDim2.new(1, 0, 0, 30)
-title.TextColor3 = Color3.new(1, 1, 1)
-title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+local SpeedSlider = PlayerTab:CreateSlider({
+   Name = "Скорость бега",
+   Range = {16, 300},
+   Increment = 1,
+   Suffix = " SPD",
+   CurrentValue = 16,
+   Flag = "Slider1", 
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+   end,
+})
 
--- Функция для создания кнопок
-local function createButton(name, pos, callback)
-    local btn = Instance.new("TextButton", mainFrame)
-    btn.Text = name
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = UDim2.new(0.05, 0, 0, pos)
-    btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.MouseButton1Click:Connect(callback)
-end
+local JumpSlider = PlayerTab:CreateSlider({
+   Name = "Сила прыжка",
+   Range = {50, 500},
+   Increment = 1,
+   Suffix = " JP",
+   CurrentValue = 50,
+   Flag = "Slider2", 
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+   end,
+})
 
--- 1. Функция скорости
-createButton("Speed 50", 40, function()
-    player.Character.Humanoid.WalkSpeed = 50
-end)
+-- ВКЛАДКА: Читы
+local CheatsTab = Window:CreateTab("Читы", 4483345998)
 
--- 2. Функция прыжка
-createButton("High Jump", 85, function()
-    player.Character.Humanoid.JumpPower = 100
-end)
+local FlyToggle = CheatsTab:CreateToggle({
+   Name = "Полет (Fly)",
+   CurrentValue = false,
+   Flag = "Toggle1",
+   Callback = function(Value)
+      if Value then
+          -- Логика полета (упрощенная)
+          _G.Fly = true
+          local p = game.Players.LocalPlayer
+          local char = p.Character
+          local mouse = p:GetMouse()
+          local lpart = char.HumanoidRootPart
+          local bg = Instance.new("BodyGyro", lpart)
+          bg.P = 9e4
+          bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+          bg.cframe = lpart.CFrame
+          local bv = Instance.new("BodyVelocity", lpart)
+          bv.velocity = Vector3.new(0,0.1,0)
+          bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+          spawn(function()
+              while _G.Fly do
+                  wait()
+                  p.Character.Humanoid.PlatformStand = true
+                  bv.velocity = mouse.Hit.lookVector * 100
+                  bg.cframe = CFrame.new(lpart.Position, mouse.Hit.p)
+              end
+              bg:Destroy()
+              bv:Destroy()
+              p.Character.Humanoid.PlatformStand = false
+          end)
+      else
+          _G.Fly = false
+      end
+   end,
+})
 
--- 3. Телепорт в банк (пример для Брукхейвена)
-createButton("Teleport Bank", 130, function()
-    player.Character.HumanoidRootPart.CFrame = CFrame.new(-442, 23, -283) -- Координаты банка
-end)
+-- ВКЛАДКА: Телепорты
+local TeleportTab = Window:CreateTab("Телепорты", 4483345998)
 
--- 4. Сброс настроек
-createButton("Reset All", 175, function()
-    player.Character.Humanoid.WalkSpeed = 16
-    player.Character.Humanoid.JumpPower = 50
-end)
+TeleportTab:CreateButton({
+   Name = "Телепорт в Банк",
+   Callback = function()
+      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-442, 23, -283)
+      Rayfield:Notify({Title = "Успех", Content = "Вы в банке!", Duration = 3})
+   end,
+})
+
+TeleportTab:CreateButton({
+   Name = "Сейф (Внутри)",
+   Callback = function()
+      game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-437, 23, -272)
+   end,
+})
